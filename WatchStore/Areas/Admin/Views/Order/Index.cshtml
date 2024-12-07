@@ -1,0 +1,287 @@
+﻿
+@model IEnumerable<WatchStore.Models.ListOrder>
+@*@model WatchStore.Models.MOrder*@
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+@Html.Partial("_MessageAlert")
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-lg-10">
+        <h2>Danh sách đặt hàng</h2>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="~/admin">Dashboard</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a>Order</a>
+            </li>
+            <li class="breadcrumb-item active">
+                <strong>Index</strong>
+            </li>
+        </ol>
+    </div>
+    <div class="col-lg-2">
+        <br />
+        <a class="btn btn-danger" href="@Url.Action("Trash","Order")"><i class="fa fa-trash"></i>&nbsp;&nbsp;<span class="bold">Đơn hàng hủy(@ViewBag.countTrash)</span></a>
+
+    </div>
+</div>
+
+
+
+<div class="row" style="margin: 5px">
+    <div class="col-md-3">
+        <form class="d-flex" action="@Url.Action("Index", "Order")" method="get">
+            <div class="position-relative" style="width: 100%;">
+                <input id="searchInput" name="searchString" class="form-control"
+                       type="search" placeholder="Tìm kiếm đơn hàng..."
+                       aria-label="Search" value="@ViewBag.SearchString" />
+                <span id="clearInput" class="clear-icon">&times;</span>
+            </div>
+            <button class="btn btn-dark" type="submit">Tìm kiếm</button>
+        </form>
+    </div>
+</div>
+
+<style>
+    .position-relative {
+        position: relative;
+    }
+
+    .clear-icon {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        font-size: 20px;
+        color: #aaa;
+    }
+</style>
+
+<script>
+    document.getElementById("clearInput").onclick = function (event) {
+        event.preventDefault();
+        document.getElementById("searchInput").value = "";
+        document.forms[0].submit();
+    };
+</script>
+
+
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox ">
+
+                <div class="ibox-content">
+
+                    <table class="footable table table-stripped toggle-arrow-tiny">
+                        <thead>
+                            <tr>
+                                <th data-toggle="true">STT</th>
+                                <th data-hide="all">ID</th>
+                                <th data-toggle="true">Khách hàng</th>
+
+                                <th>Trạng thái đơn</th>
+                                <th>Chi nhánh</th>
+                                <th>Địa chỉ giao hàng</th>
+                                <th>Thanh toán</th>
+
+                                <th>Tổng hóa đơn </th>
+                                <th>Ngày đặt hàng</th>
+                                <th data-hide="all">Ngày xuất</th>
+                                <th>Chức năng</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{var stt = 1;}
+                            @foreach (var c in Model)
+                            {
+                                <tr>
+                                    <td>@stt</td>
+                                    <td class="">
+                                        @c.ID
+                                    </td>
+                                    <td>
+                                        <a href="@Url.Action("Details", "Order", new { ID = c.ID })">
+                                            @c.CustomerName
+                                        </a>
+                                    </td>
+                                    <td class=''>
+                                        <button class="StatusOrder btn p-0" data-status="@c.Status" data-id="@c.ID" data-toggle="modal"
+                                                data-target="#modal-secondary">
+                                            @if (c.Status == 0)
+                                            {
+                                                <small class="badge badge-dark ba@(c.ID)">Chờ xác nhận đơn </small>
+                                            }
+                                            else if (c.Status == 1)
+                                            {
+                                                <small class="badge badge-secondary ba@(c.ID)"> Chờ xử lý</small> }
+                                            else if (c.Status == 2)
+                                            {
+                                                <small class="badge badge-info ba@(c.ID)">Đang giao hàng</small> }
+                                            else if (c.Status == 3)
+                                            {
+                                                <small class="badge badge-danger ba@(c.ID)">Hoàn thành</small>}
+
+                                        </button>
+                                    </td>
+                                    <td>
+                                        @{
+                                            if (c.StoreId == 1)
+                                            {
+                                                <span>Chi nhánh Thống Nhất</span>
+                                            }
+                                            else if (c.StoreId == 2)
+                                            {
+                                                <span>Chi nhánh Tô Ngọc Vân</span>
+                                            }
+                                            else if (c.StoreId == 3)
+                                            {
+                                                <span>Chi nhánh Lê Lai</span>
+                                            }
+                                            else if (c.StoreId == 4)
+                                            {
+                                                <span>Chi nhánh 87 ĐƯỜNG THÍCH QUẢNG ĐỨC</span>
+                                            }
+                                            else if (c.StoreId == 5)
+                                            {
+                                                <span>Chi nhánh Pandora</span>
+                                            }
+                                            else if (c.StoreId == 6)
+                                            {
+                                                <span>Chi nhánh Co.opmart</span>
+                                            }
+                                        }
+                                    </td>
+                                    <td>
+                                        @c.DeliveryAddress
+                                    </td>
+                                    <td>
+                                        @{
+                                            if (c.DeliveryPaymentMethod == "Tiền mặt ")
+                                            {
+                                                if (c.Status == 3)
+                                                {
+
+
+                                                    <span class="badge badge-success">Đã thanh toán</span>
+                                                }
+                                                else
+                                                { <span class="badge badge-warning">Chưa thanh toán</span>}
+
+
+                                            }
+                                            else if (c.DeliveryPaymentMethod == "Chuyển khoản bằng QR")
+                                            {
+                                                @*<span>Đã thanh toán</span>*@
+                                                <span class="badge badge-success">Đã thanh toán</span>
+
+
+                                            }
+                                            else if (c.DeliveryPaymentMethod == "VNPay")
+                                            {
+                                                @*<span>Đã thanh toán</span>*@
+                                                <span class="badge badge-success">Đã thanh toán</span>
+
+
+                                            }
+
+
+
+                                        }
+                                    </td>
+
+
+                                    @*<td>
+                                        </td>*@
+                                    <td class="">
+                                        @String.Format("{0:0,0₫}", c.SAmount)
+                                    </td>
+                                    <td>
+                                        @c.CreateDate
+                                    </td>
+                                    <td class="export-date@(c.ID)">
+                                        @c.ExportDate
+                                    </td>
+                                    <td class="">
+                                        <button type="button" style="background:#5bc0de" class="btn btn-sm px-3" data-toggle="tooltip" data-placement="top" title="Chi tiết đơn hàng">
+                                            <a href="~/admin/order/details/@c.ID" class="text-white">
+                                                <i style="width:50px" class="fa fa-eye"></i>
+                                            </a>
+                                        </button>
+                                        <button type="button" class="btn btn-danger btn-sm px-3" data-toggle="tooltip" data-placement="top" title="Xóa">
+                                            <a href="@Url.Action("DelTrash", "Order", new { id = c.ID })" class="text-white"><i class="fa fa-trash" style="width:50px"></i></a>
+                                        </button>
+                                    </td>
+                                </tr>
+                                stt++;
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="5">
+                                    <ul class="pagination float-right"></ul>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+<style>
+    .text-primama {
+        color: #1e91cf;
+    }
+</style>
+<div class="modal fade" id="modal-secondary">
+    <div class="modal-dialog">
+        <div class="modal-content bg-light">
+            <div class="modal-header">
+                <h5 class="modal-title">Trạng thái đơn hàng</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body bg-white">
+                <div class="row">
+                    <div class="col-5 text-right">Trạng thái đơn hàng</div>
+                    <div class="col-7">
+                        <select class="form-control" id="optionStatus">
+                            <option value="0">Chờ xác nhận đơn</option>
+                            <option value="1">Chờ Xử Lý</option>
+                            <option value="2">Đang xử lý</option>
+                            <option value="3">Hoàn thành</option>
+                        </select>
+                    </div>
+
+                    @*<div class="col-5 py-2 text-right">Ghi chú</div>
+                        <div class="col-7 py-2">
+                            <textarea class="form-control" rows="3"></textarea>
+                        </div>*@
+                </div>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="changeStatusOrder btn btn-secondary">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.querySelector('.changeStatusOrder').addEventListener('click', function () {
+        // Lấy giá trị hiện tại của dropdown
+        const selectedValue = document.getElementById('optionStatus').value;
+
+        // Kiểm tra nếu giá trị là 0
+        if (selectedValue === "0" || selectedValue === "1" || selectedValue === "2" || selectedValue === "3") {
+            // Refresh lại trang web
+            location.reload();
+        }
+    });
+</script>

@@ -1,0 +1,142 @@
+﻿@model IEnumerable<WatchStore.Models.MContact>
+
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+@Html.Partial("_MessageAlert")
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-lg-9">
+        <h2>Liên hệ</h2>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="~/admin">Dashboard</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a>Contact</a>
+            </li>
+            <li class="breadcrumb-item active">
+                <strong>Index</strong>
+            </li>
+        </ol>
+    </div>
+    <div class="col-lg-3">
+        <br />
+        <a class="btn btn-success " href="@Url.Action("Create","Contact")"><i class="fa fa-upload"></i>&nbsp;&nbsp;<span class="bold">Thêm mới</span></a>
+        <a class="btn btn-danger" href="@Url.Action("Trash","Contact")"><i class="fa fa-trash"></i>&nbsp;&nbsp;<span class="bold">Thùng rác(@ViewBag.countTrash)</span></a>
+
+    </div>
+</div>
+<div class="row" style="margin: 5px">
+    <div class="col-md-3">
+        <form class="d-flex" action="@Url.Action("Index", "Contact")" method="get">
+            <div class="position-relative" style="width: 100%;">
+                <input id="searchInput" name="searchString" class="form-control"
+                       type="search" placeholder="Tìm kiếm liên hệ..."
+                       aria-label="Search" value="@ViewBag.SearchString" />
+                <span id="clearInput" class="clear-icon">&times;</span>
+            </div>
+            <button class="btn btn-dark" type="submit">Tìm kiếm</button>
+        </form>
+    </div>
+</div>
+<style>
+    .position-relative {
+        position: relative;
+    }
+
+    .clear-icon {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        font-size: 20px;
+        color: #aaa;
+    }
+</style>
+
+<script>
+    document.getElementById("clearInput").onclick = function(event) {
+        event.preventDefault();
+        document.getElementById("searchInput").value = "";
+        document.forms[0].submit();
+    };
+</script>
+
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox ">
+
+                <div class="ibox-content">
+
+                    <table class="footable table table-stripped toggle-arrow-tiny">
+                        <thead>
+                            <tr>
+                                <th data-toggle="true">STT</th>
+                                <th>Tiêu đề </th>
+                                <th >Email</th>
+                                <th>Điện thoại</th>
+                                <th>Trạng thái</th>
+                                <th>Công cụ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{var stt = 1;}
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td class="">@(stt)</td>
+                                    <td>@Html.DisplayFor(modelItem => item.Title)</td>
+                                    <td>@Html.DisplayFor(modelItem => item.Email)</td>
+                                    <td>0@(Html.DisplayFor(modelItem => item.Phone))</td>
+
+                                    <td class="">
+
+                                        @if (item.Flag == 1)
+                                        {
+                                            <span class="badge badge-secondary">
+                                                Đã trả lời
+                                            </span> }
+                                        else
+                                        {
+                                            <span class="badge badge-success">
+                                                Chưa trả lời
+                                            </span>}
+
+                                    </td>
+                                    <td class="">
+                                        @if (item.Flag == 1)
+                                        {
+                                            <a class="btn btn-secondary btn-sm" href="@Url.Action("Reply", "Contact", new { id = item.Id })" data-toggle="tooltip" data-placement="top" title="Xem">
+                                                <i class="fa fa-check-circle"></i>
+                                            </a> }
+                                        else
+                                        {
+                                            <a class="btn btn-info btn-sm" href="@Url.Action("Reply", "Contact", new { id = item.Id })" data-toggle="tooltip" data-placement="top" title="Trả lời @Html.DisplayFor(modelItem => item.FullName)">
+                                                <i class="fa fa-edit"></i>
+                                            </a>}
+                                        <button type="button" class="btn btn-danger btn-sm" data-toggle="tooltip" data-placement="top" title="Xóa liên hệ">
+                                            <a href="@Url.Action("DelTrash", "Contact", new { id = item.Id })" class="text-white"><i class="fa fa-trash"></i></a>
+                                        </button>
+                                    </td>
+                                </tr>
+                                stt++;
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="5">
+                                    <ul class="pagination float-right"></ul>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

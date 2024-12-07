@@ -1,0 +1,25 @@
+﻿@model IEnumerable<WatchStore.Models.MCategory>
+
+
+@{ 
+    int index = 0; 
+    var arrayID = ViewBag.ListCatID;
+}
+
+@foreach (var item in Model)
+{
+ 
+    <li class="menu-dropdown">
+        <a href="~/@item.Slug">@item.Name</a>
+        @if (index < arrayID.Length)
+        {
+            <ul class="submenu" style="width: 160px">
+                @Html.Action("MainMenuWithSubCategory", "Module", new { id = arrayID[index] })
+            </ul>
+        }
+
+    </li> 
+
+    index++;
+}
+

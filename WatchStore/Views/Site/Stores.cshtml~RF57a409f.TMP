@@ -1,0 +1,768 @@
+﻿@model IEnumerable<WatchStore.Models.Stores>
+
+@{
+    ViewBag.Title = "Hệ thống cửa hàng";
+    Layout = "~/Views/Shared/_LayoutSite.cshtml";
+}
+@Html.Partial("_Nofit")
+<style>
+    #googleMap {
+        width: 100%;
+        height: 85vh; /* Ensure the map container has a defined height */
+        background-color: #e5e3df; /* Optional: Set a background color */
+    }
+
+    .address-input {
+        width: 450px;
+        height: 78px;
+        position: absolute;
+        top: 250px;
+        left: 70px;
+        z-index: 5; /* Ensure the input is above the map */
+        padding: 5px;
+    }
+
+    /* For Webkit browsers (Chrome, Safari) */
+    .address-list::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .address-list::-webkit-scrollbar-thumb {
+        background-color: #888;
+        border-radius: 10px;
+    }
+
+    .address-list::-webkit-scrollbar-track {
+        background: #fff;
+    }
+
+    #address {
+        width: 90%;
+        height: auto;
+        color: gray;
+    }
+
+    /*.address-list {
+        position: absolute;
+        z-index: 5;
+        background-color: white;
+        border: 1px solid #ccc;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        padding: 15px;
+    }*/
+    .address-list {
+        position: absolute;
+        left: 25px;
+        top: -10px;
+        z-index: 5;
+        background-color: white;
+        border: 1px solid #ccc;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        padding: 15px;
+        max-height: 600px; /* Adjust the height as needed */
+        overflow-y: auto; /* Enable vertical scrolling */
+        border-radius: 5px;
+    }
+
+
+        .address-list ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .address-list li {
+            margin: 5px 0;
+            cursor: pointer;
+        }
+
+            .address-list li:hover {
+                background-color: #f0f0f0;
+            }
+
+    area {
+        color: blue;
+    }
+
+    .address-list li {
+        margin: 5px 0;
+        cursor: pointer;
+        padding: 5px;
+    }
+
+    .address-list i {
+        margin-left: 10px;
+    }
+
+    .info {
+        display: none;
+        padding: 0 4px;
+    }
+
+        .info .info-day {
+            display: flex;
+            justify-content: space-between;
+            flex-direction: row;
+            align-items: center;
+            line-height: 30px;
+        }
+
+        .info .info-day-gray {
+            display: flex;
+            justify-content: space-between;
+            flex-direction: row;
+            background-color: #F2F2F2;
+            align-items: center;
+            line-height: 30px;
+        }
+
+        .info a {
+            color: #E50024;
+            text-decoration: underline;
+        }
+
+    .extra-info {
+        display: none;
+    }
+
+    .info-restaurent, .btn-order {
+        display: inline-block;
+        width: 100%; /* Adjust as needed */
+        height: auto; /* Adjust as needed */
+        text-align: center;
+        line-height: 40px; /* Same as height to center text vertically */
+        border-radius: 25px; /* Half of the height for a perfect circle */
+        color: white;
+        font-size: 14px; /* Adjust as needed */
+        font-weight: bold; /* Adjust as needed */
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .info-restaurent {
+        background-color: #E50024; /* Red background color */
+        border: 1px solid #E50024;
+    }
+
+    .btn-order {
+        margin-top: 5px;
+        background-color: #000000; /* Black background color */
+        border: 1px solid #000000;
+    }
+
+    .address-list {
+        /* display: none; */
+    }
+
+    .navbar-toggler1 {
+        position: absolute;
+        line-height: 25px;
+        background-color: white;
+    }
+
+    #autocomplete-results {
+        position: absolute;
+        width: 100%;
+        max-height: 300px;
+        overflow-y: auto;
+        background-color: white;
+        border: 1px solid #ccc;
+        border-top: none;
+        border-radius: 0 0 5px 5px;
+        display: none;
+        z-index: 1000;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+
+        #autocomplete-results li {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+
+            #autocomplete-results li:last-child {
+                border-bottom: none;
+            }
+
+            #autocomplete-results li:hover {
+                background-color: #f0f0f0;
+            }
+
+            #autocomplete-results li strong {
+                font-weight: bold;
+            }
+
+            #autocomplete-results li small {
+                color: #666;
+            }
+
+    @@media (max-width: 768px) {
+        .address-input {
+            /*position:fixed;*/
+            margin: auto;
+            width: 70%;
+            left: 1%;
+            top: 53.5%;
+            z-index: 1;
+        }
+
+        .address-list {
+            width: 100%;
+            margin: auto;
+            max-height: 450px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+
+        #googleMap {
+            height: 90vh;
+        }
+    }
+
+    .close-icon1 {
+        font-size: 30px;
+        cursor: pointer;
+        font-weight: bold;
+        position: absolute;
+        right: 3px;
+        top: -5px;
+    }
+
+    .search-container {
+        position: relative;
+        margin-bottom: 15px;
+    }
+
+    #location-search {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+
+    #autocomplete-results {
+        position: absolute;
+        width: 100%;
+        max-height: 200px;
+        overflow-y: auto;
+        background-color: white;
+        border: 1px solid #ccc;
+        border-top: none;
+        border-radius: 0 0 5px 5px;
+        display: none;
+        z-index: 1000;
+    }
+
+        #autocomplete-results li {
+            padding: 10px;
+            cursor: pointer;
+        }
+
+            #autocomplete-results li:hover {
+                background-color: #f0f0f0;
+            }
+</style>
+
+<!--<div class="map_container">
+    <!-- Toggle button -->
+<!--<div id="googleMap"></div>
+<div class="address-input">
+    <button class="navbar-toggler1" type="button" data-toggle="collapse" data-target="#mapContainer" aria-controls="mapContainer" aria-expanded="false" aria-label="Toggle navigation" id="toggleButton1">
+        <span class="navbar-toggler-icon">&#9776;</span>
+    </button>
+    <div class="address-list">
+
+        <div type="button" class="close-icon1" aria-label="Close">&times;</div>
+
+        <ul class="list-unstyled">-->
+@*<input id="autocomplete" placeholder="Nhập địa chỉ của bạn" type="text" />*@
+
+
+
+@*<li style="padding: 15px 15px; font-weight: bold; display: flex; flex-direction: row; justify-content: space-between; gap: 1rem" class="d-flex justify-content-between align-items-center" data-lat="10.7900989" data-lng="106.6416638" data-url="https://maps.app.goo.gl/DXizEWkCoT9Eq4wG9">
+
+        <div class="address">KFC ĐƯỜNG THỐNG NHẤT, Số 451 Thống Nhất, P.11, Q.Gò Vấp, TPHCM, HỒ CHÍ MINH</div>
+        <i class="fas fa-chevron-down"></i>
+    </li>
+    <div class="info">-->*@
+<!-- Corresponding information for Gò Vấp -->
+<!--<p>Gò Vấp Information</p>
+    <div>
+        <div class="info-day">
+            <span>Chủ nhật</span>
+            <span>10:00 - 21:30</span>
+        </div>
+        <div class="info-day-gray">
+            <span>Thứ hai</span>
+            <span>10:00 - 21:30</span>
+        </div>
+        <div class="info-day">
+            <span>Thứ ba</span>
+            <span>10:00 - 21:30</span>
+        </div>
+        <div class="info-day-gray">
+            <span>Thứ tư </span>
+            <span>10:00 - 21:30</span>
+        </div>
+        <div class="info-day">
+            <span>Thứ năm </span>
+            <span>10:00 - 21:30</span>
+        </div>
+        <div class="info-day-gray">
+            <span>Thứ sáu </span>
+            <span>10:00 - 21:30</span>
+        </div>
+        <div class="info-day">
+            <span>Thứ bảy </span>
+            <span>10:00 - 21:30</span>
+        </div>
+        <p style="font-size: 13px;">Xem Menu và đặt món Gà Rán KFC tuyệt hảo tại Cửa hàng KFC ĐƯỜNG THỐNG NHẤT. Nhiều khuyến mãi hấp dẫn chỉ có tại cửa hàng và đặt hàng trực tuyến. Ghé thăm ngay!</p>
+        <a href="" target="_blank">Xem dẫn đường</a>
+        <div style="display: flex; flex-direction: column">
+            <button class="info-restaurent">Xem thông tin nhà hàng</button>
+            <button class="btn-order">Bắt đầu đặt hàng</button>
+        </div>
+    </div>
+</div>
+<li style="padding: 15px 15px; font-weight: bold; display: flex; flex-direction: row; justify-content: space-between; gap: 1rem" class="d-flex justify-content-between align-items-center" data-lat="10.762622" data-lng="106.660172">
+    <div class="address">KFC ĐƯỜNG PHẠM VĂN CHIÊU , Số 84 Đường Phạm Văn Chiêu, P.9, Q.Gò Vấp, TPHCM, HỒ CHÍ MINH</div>
+
+    <i class="fas fa-chevron-down"></i>
+</li>
+<div class="info">-->
+<!-- Corresponding information for Quận 1 -->
+<!--<p>Quận 1 Information</p>
+    <div>
+        <div class="info-day">
+            <span>Chủ nhật</span>
+            <span>10:00 - 21:30</span>
+        </div>
+        <div class="info-day-gray">
+            <span>Thứ hai</span>
+            <span>10:00 - 21:30</span>
+        </div>
+        <div class="info-day">
+            <span>Thứ ba</span>
+            <span>10:00 - 21:30</span>
+        </div>
+        <div class="info-day-gray">
+            <span>Thứ tư </span>
+            <span>10:00 - 21:30</span>
+        </div>
+        <div class="info-day">
+            <span>Thứ năm </span>
+            <span>10:00 - 21:30</span>
+        </div>
+        <div class="info-day-gray">
+            <span>Thứ sáu </span>
+            <span>10:00 - 21:30</span>
+        </div>
+        <div class="info-day">
+            <span>Thứ bảy </span>
+            <span>10:00 - 21:30</span>
+        </div>
+        <p style="font-size: 13px;">Xem Menu và đặt món Gà Rán KFC tuyệt hảo tại Cửa hàng KFC ĐƯỜNG THỐNG NHẤT. Nhiều khuyến mãi hấp dẫn chỉ có tại cửa hàng và đặt hàng trực tuyến. Ghé thăm ngay!</p>
+        <a href="#">Xem dẫn đường</a>
+        <div style="display: flex; flex-direction: column">
+            <button class="info-restaurent">Xem thông tin nhà hàng</button>
+            <button class="btn-order">Bắt đầu đặt hàng</button>
+        </div>
+    </div>
+</div>
+<li style="padding: 15px 15px; font-weight: bold; display: flex; flex-direction: row; justify-content: space-between; gap: 1rem" class="d-flex justify-content-between align-items-center" data-lat="10.8230989" data-lng="106.6296638">
+    <div class="address">KFC EMART GÒ VẤP, F1-03 tầng 1, Trung tâm thương mại Emart Gò Vấp, 366 Phan Văn Trị, P.5, Q.Gò Vấp, TPHCM, HỒ CHÍ MINH</div>
+
+    <i class="fas fa-chevron-down"></i>
+</li>
+<div class="info">-->
+<!-- Corresponding information for Thủ Đức -->
+<!--<p>Thủ Đức Information</p>
+    <div>
+        <div class="info-day">
+            <span>Chủ nhật</span>
+            <span>10:00 - 21:30</span>
+        </div>
+        <div class="info-day-gray">
+            <span>Thứ hai</span>
+            <span>10:00 - 21:30</span>
+        </div>
+        <div class="info-day">
+            <span>Thứ ba</span>
+            <span>10:00 - 21:30</span>
+        </div>
+        <div class="info-day-gray">
+            <span>Thứ tư </span>
+            <span>10:00 - 21:30</span>
+        </div>
+        <div class="info-day">
+            <span>Thứ năm </span>
+            <span>10:00 - 21:30</span>
+        </div>
+        <div class="info-day-gray">
+            <span>Thứ sáu </span>
+            <span>10:00 - 21:30</span>
+        </div>
+        <div class="info-day">
+            <span>Thứ bảy </span>
+            <span>10:00 - 21:30</span>
+        </div>
+        <p style="font-size: 13px;">Xem Menu và đặt món Gà Rán KFC tuyệt hảo tại Cửa hàng KFC ĐƯỜNG THỐNG NHẤT. Nhiều khuyến mãi hấp dẫn chỉ có tại cửa hàng và đặt hàng trực tuyến. Ghé thăm ngay!</p>
+        <a href="#">Xem dẫn đường</a>
+        <div style="display: flex; flex-direction: column">
+            <button class="info-restaurent">Xem thông tin nhà hàng</button>
+            <button class="btn-order">Bắt đầu đặt hàng</button>
+        </div>
+    </div>
+</div>
+<li style="padding: 15px 15px; font-weight: bold; display: flex; flex-direction: row; justify-content: space-between; gap: 1rem" class="d-flex justify-content-between align-items-center" data-lat="10.8230989" data-lng="106.6296638">
+    <div class="address">KFC EMART GÒ VẤP, F1-03 tầng 1, Trung tâm thương mại Emart Gò Vấp, 366 Phan Văn Trị, P.5, Q.Gò Vấp, TPHCM, HỒ CHÍ MINH</div>
+
+    <i class="fas fa-chevron-down"></i>
+</li>
+<div class="info">-->
+<!-- Corresponding information for Thủ Đức -->
+<!--<p>Thủ Đức Information</p>
+                    <div>
+                        <div class="info-day">
+                            <span>Chủ nhật</span>
+                            <span>10:00 - 21:30</span>
+                        </div>
+                        <div class="info-day-gray">
+                            <span>Thứ hai</span>
+                            <span>10:00 - 21:30</span>
+                        </div>
+                        <div class="info-day">
+                            <span>Thứ ba</span>
+                            <span>10:00 - 21:30</span>
+                        </div>
+                        <div class="info-day-gray">
+                            <span>Thứ tư </span>
+                            <span>10:00 - 21:30</span>
+                        </div>
+                        <div class="info-day">
+                            <span>Thứ năm </span>
+                            <span>10:00 - 21:30</span>
+                        </div>
+                        <div class="info-day-gray">
+                            <span>Thứ sáu </span>
+                            <span>10:00 - 21:30</span>
+                        </div>
+                        <div class="info-day">
+                            <span>Thứ bảy </span>
+                            <span>10:00 - 21:30</span>
+                        </div>
+                        <p style="font-size: 13px;">Xem Menu và đặt món Gà Rán KFC tuyệt hảo tại Cửa hàng KFC ĐƯỜNG THỐNG NHẤT. Nhiều khuyến mãi hấp dẫn chỉ có tại cửa hàng và đặt hàng trực tuyến. Ghé thăm ngay!</p>
+                        <a href="#">Xem dẫn đường</a>
+                        <div style="display: flex; flex-direction: column">
+                            <button class="info-restaurent">Xem thông tin nhà hàng</button>
+                            <button class="btn-order">Bắt đầu đặt hàng</button>
+                        </div>
+                    </div>
+                </div>
+            </ul>
+        </div>
+    </div>
+</div>-->
+
+<div class="map_container">
+    <!-- Toggle button -->
+    <div id="googleMap"></div>
+    <div class="address-input">
+        <button class="navbar-toggler1" type="button" data-toggle="collapse" data-target="#mapContainer" aria-controls="mapContainer" aria-expanded="false" aria-label="Toggle navigation" id="toggleButton1">
+            <span class="navbar-toggler-icon">&#9776;</span>
+        </button>
+        <div class="address-list">
+            <div type="button" class="close-icon1" aria-label="Close">&times;</div>
+
+            <ul class="list-unstyled">
+                @foreach (var store in Model)
+                {
+                    <li style="padding: 15px 15px; font-weight: bold; display: flex; flex-direction: row; justify-content: space-between; gap: 1rem"
+                        class="d-flex justify-content-between align-items-center"
+                        data-lat="@store.Latitude"
+                        data-lng="@store.Longitude"
+                        data-url="@store.DeliveryUrl">
+
+                        <div class="address">@store.Address</div>
+                        <i class="fas fa-chevron-down"></i>
+                    </li>
+                    <div class="info">
+                        <!-- Corresponding information for the store -->
+                        <p>@store.Description</p>
+                        <div>
+                            <div class="info-day">
+                                <span>Chủ nhật</span>
+                                <span>@store.OpenHours</span>
+                            </div>
+                            <p style="font-size: 13px;">@store.Description</p>
+                            <a href="@store.MenuUrl" target="_blank">Xem dẫn đường</a>
+                            <div style="display: flex; flex-direction: column">
+                                <button class="info-restaurent">Xem thông tin cửa hàng</button>
+                                <a href="@store.DeliveryUrl" class="btn-order">Bắt đầu đặt hàng</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script src="https://maps.googleapis.com/maps/api/js?AlzaSyiHX4bNLWILtpw0sARM5hx9a_sa-ExACvw&libraries=places"></script>
+<script>
+    function initialize() {
+        const input = document.getElementById('autocomplete');
+        const options = {
+            types: ['geocode'], // You can restrict the autocomplete to specific types (addresses, cities, etc.)
+            componentRestrictions: { country: 'vn' } // Restrict the results to Vietnam
+        };
+
+        const autocomplete = new google.maps.places.Autocomplete(input, options);
+
+        autocomplete.addListener('place_changed', function () {
+            const place = autocomplete.getPlace();
+            console.log('Selected Place:', place);
+        });
+    }
+
+    google.maps.event.addDomListener(window, 'load', initialize);
+</script>
+<script>
+    // Initialize the Google Maps Places service
+    let autocompleteService;
+    let sessionToken;
+
+    function initAutocomplete() {
+        // Initialize AutocompleteService and session token
+        autocompleteService = new google.maps.places.AutocompleteService();
+        sessionToken = new google.maps.places.AutocompleteSessionToken();
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        initAutocomplete(); // Ensure autocomplete is initialized
+
+        const input = document.getElementById('location-search');
+        const resultsList = document.getElementById('autocomplete-results');
+
+        // Handle input event with debounce to limit API calls
+        input.addEventListener('input', debounce(function () {
+            const query = input.value;
+
+            if (query.length > 1) {
+                const request = {
+                    input: query,
+                    sessionToken: sessionToken,
+                    types: ['(regions)'],
+                    componentRestrictions: { country: 'vn' },
+                    fields: ['place_id', 'structured_formatting'],
+                    locationBias: {
+                        radius: 50000 // 50km radius from the center of Ho Chi Minh City
+                    }
+                };
+
+                autocompleteService.getPlacePredictions(request, function (predictions, status) {
+                    if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
+                        displayResults(predictions);
+                    } else {
+                        resultsList.style.display = 'none';
+                    }
+                });
+            } else {
+                resultsList.style.display = 'none';
+            }
+        }, 300));
+
+        // Hide results when clicking outside
+        document.addEventListener('click', function (e) {
+            if (!input.contains(e.target) && !resultsList.contains(e.target)) {
+                resultsList.style.display = 'none';
+            }
+        });
+    });
+
+    function displayResults(predictions) {
+        const resultsList = document.getElementById('autocomplete-results');
+        resultsList.innerHTML = '';
+        resultsList.style.display = 'block';
+
+        predictions.forEach(function (prediction) {
+            const li = document.createElement('li');
+            const mainText = prediction.structured_formatting.main_text;
+            const secondaryText = prediction.structured_formatting.secondary_text;
+            li.innerHTML = `<strong>${mainText}</strong><br><small>${secondaryText}</small>`;
+            li.addEventListener('click', function () {
+                document.getElementById('location-search').value = `${mainText}, ${secondaryText}`;
+                resultsList.style.display = 'none';
+            });
+            resultsList.appendChild(li);
+        });
+    }
+
+    // Debounce function to limit API calls
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    // Google Maps and Place selection integration
+    let infowindow; // Create a single InfoWindow instance
+
+    function initMap() {
+        const hcmc = { lat: 10.8230989, lng: 106.6296638 };
+        const map = new google.maps.Map(document.getElementById('googleMap'), {
+            zoom: 12,
+            center: hcmc
+        });
+
+        const marker = new google.maps.Marker({
+            position: hcmc,
+            map: map
+        });
+
+        const input = document.getElementById('location-search');
+        const autocomplete = new google.maps.places.Autocomplete(input, {
+            types: ['geocode'],
+            componentRestrictions: { country: 'vn' }
+        });
+
+        autocomplete.addListener('place_changed', function () {
+            const place = autocomplete.getPlace();
+            if (!place.geometry) {
+                window.alert("No details available for input: '" + place.name + "'");
+                return;
+            }
+
+            if (place.geometry.viewport) {
+                map.fitBounds(place.geometry.viewport);
+            } else {
+                map.setCenter(place.geometry.location);
+                map.setZoom(17);
+            }
+            marker.setPosition(place.geometry.location);
+            marker.setVisible(true);
+        });
+
+        // Initialize InfoWindow instance
+        infowindow = new google.maps.InfoWindow();
+
+        // Add click event to address list items
+        // Add click event to address list items
+        document.querySelectorAll('.address-list li').forEach(function (item) {
+            item.addEventListener('click', function () {
+                const lat = parseFloat(this.getAttribute('data-lat'));
+                const lng = parseFloat(this.getAttribute('data-lng'));
+                const position = { lat: lat, lng: lng };
+
+                // Center the map and set zoom level
+                map.setCenter(position);
+                map.setZoom(17);
+
+                // Update marker position
+                marker.setPosition(position);
+                marker.setVisible(true);
+
+                // Close the existing InfoWindow before opening a new one
+                infowindow.close();
+
+                // Find the corresponding .address content and direction link URL
+                const addressElement = this.querySelector('.address').textContent;
+                const directionLinkUrl = this.getAttribute('data-url'); // Get the URL from the data attribute
+
+                // Add the URL for detailed directions
+                const directionLink = '<br><a href="' + directionLinkUrl + '" target="_blank">Xem dẫn đường chi tiết</a>';
+
+                // Set the content of the InfoWindow with a styled div and the dynamic link
+                infowindow.setContent('<div style="width: 200px; height: auto;">' + addressElement + directionLink + '</div>');
+
+                // Add a brief delay to prevent overlapping
+                setTimeout(function () {
+                    infowindow.open(map, marker);
+                }, 100); // 100ms delay before opening the InfoWindow
+            });
+        });
+
+    }
+
+    google.maps.event.addDomListener(window, 'load', initMap);
+</script>
+
+
+@*<script>
+        document.querySelectorAll('.address-list li').forEach(function (item) {
+            item.addEventListener('click', function () {
+                // Toggle visibility of the information
+                let info = item.nextElementSibling;
+                if (info.style.display === 'block') {
+                    info.style.display = 'none';
+                    item.querySelector('i').classList.remove('fa-chevron-up');
+                    item.querySelector('i').classList.add('fa-chevron-down');
+                } else {
+                    info.style.display = 'block';
+                    item.querySelector('i').classList.remove('fa-chevron-down');
+                    item.querySelector('i').classList.add('fa-chevron-up');
+                }
+            });
+        });
+
+    </script>*@
+
+<script>
+    document.querySelectorAll('.address-list li').forEach(function (item) {
+        item.addEventListener('click', function () {
+            let info = item.nextElementSibling;
+            if (info.style.display === 'block') {
+                info.style.display = 'none';
+                item.querySelector('i').classList.remove('fa-chevron-up');
+                item.querySelector('i').classList.add('fa-chevron-down');
+            } else {
+                // Hide all other info sections
+                document.querySelectorAll('.info').forEach(function (otherInfo) {
+                    otherInfo.style.display = 'none';
+                    otherInfo.previousElementSibling.querySelector('i').classList.remove('fa-chevron-up');
+                    otherInfo.previousElementSibling.querySelector('i').classList.add('fa-chevron-down');
+                });
+                info.style.display = 'block';
+                item.querySelector('i').classList.remove('fa-chevron-down');
+                item.querySelector('i').classList.add('fa-chevron-up');
+            }
+        });
+    });
+
+</script>
+<script>
+    // JavaScript to toggle the visibility of .address-list
+    var toggleBtn = document.getElementById('toggleButton1');
+    toggleBtn.addEventListener('click', function () {
+        var addressList = document.querySelector(".address-list");
+        if (addressList.style.display === 'none') {
+            addressList.style.display = 'block';
+            toggleBtn.style.display = 'none';
+        } else {
+            addressList.style.display = 'none';
+        }
+
+    });
+    var closeicon = document.querySelector(".close-icon1");
+    closeicon.addEventListener("click", function () {
+        var addressList = document.querySelector(".address-list");
+        if (addressList.style.display === 'block') {
+            addressList.style.display = 'none';
+            toggleBtn.style.display = 'block';
+
+        } else {
+            addressList.style.display = 'none';
+        }
+    });
+
+</script>
+<script>
+</script>

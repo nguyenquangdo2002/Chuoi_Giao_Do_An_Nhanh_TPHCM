@@ -1,0 +1,76 @@
+﻿@model IEnumerable<WatchStore.Models.Stores>
+@{
+    ViewBag.Title = "Trash";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+@Html.Partial("_MessageAlert")
+
+
+<h2>Danh sách Chi nhánh đã xóa </h2>
+
+<div class="row" style="margin: 5px">
+    <div class="col-md-3">
+        <form class="d-flex" action="@Url.Action("Trash", "Store")" method="get">
+            <div class="position-relative" style="width: 100%;">
+                <input id="searchInput" name="searchString" class="form-control"
+                       type="search" placeholder="Tìm kiếm trong thùng rác..."
+                       aria-label="Search" value="@ViewBag.SearchString" />
+                <span id="clearInput" class="clear-icon">&times;</span>
+            </div>
+            <button class="btn btn-dark" type="submit">Tìm kiếm</button>
+        </form>
+    </div>
+</div>
+<style>
+    .position-relative {
+        position: relative;
+    }
+
+    .clear-icon {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        font-size: 20px;
+        color: #aaa;
+    }
+</style>
+
+<script>
+    document.getElementById("clearInput").onclick = function(event) {
+        event.preventDefault();
+        document.getElementById("searchInput").value = "";
+        document.forms[0].submit();
+    };
+</script>
+
+@if (Model == null || !Model.Any())
+{
+    <p>No stores found in trash.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Địa chỉ </th>
+                <th>Chức năng</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var store in Model)
+            {
+                <tr>
+                    @*<td>@store.Name</td>*@
+                    <td>@store.Address</td>
+                    <td>
+                        <a href="@Url.Action("Undo", new { id = store.Id })" class="btn btn-primary">Khôi phục</a>
+                        <a href="@Url.Action("Delete", new { id = store.Id })" class="btn btn-danger">Xóa vĩnh viễn</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
